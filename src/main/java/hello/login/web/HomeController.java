@@ -76,6 +76,7 @@ public class HomeController {
             return "home";
         }
 
+        // 로그인 시점에 세션에 보관한 회원 객체를 찾는다.
         Member loginMember = (Member) session.getAttribute(SessionConst.LOGIN_MEMBER); // Object -> Member 캐스팅(형변환)
 
         // 세션에 회원 데이터가 없으면 home으로 이동
