@@ -2,6 +2,7 @@ package hello.login.web.login;
 
 import hello.login.login.LoginService;
 import hello.login.web.member.Member;
+import hello.login.web.session.SessionManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -20,6 +22,7 @@ import javax.validation.Valid;
 public class LoginController {
 
     private final LoginService loginService;
+    private final SessionManager sessionManager;
 
     // form 보여주기
     @GetMapping("/login")
@@ -28,7 +31,7 @@ public class LoginController {
     }
 
     // 실제 로그인 처리가 되는 로직
-    @PostMapping("/login")
+//    @PostMapping("/login")
     public String login(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult,
                         HttpServletResponse response) {
         if (bindingResult.hasErrors()) { // 에러가 있다면
@@ -53,12 +56,40 @@ public class LoginController {
 
         return "redirect:/"; // 로그인이 되면 홈으로 보내기
     }
+    @PostMapping("/login")
+    public String loginV2(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult,
+                        HttpServletResponse response) {
+        if (bindingResult.hasErrors()) { // 에러가 있다면
+            return "login/loginForm";
+        }
+
+        // 성공 로직
+        Member loginMember = loginService.login(form.getLoginId(), form.getPassword());
+
+        // 회원을 못 찾거나 id, password가 맞지 않을 때
+        if (loginMember == null) {
+            // reject()는 글로벌 오류이다. 필드 오류 아님
+            bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
+            return "login/loginForm";
+        }
+
+        // 로그인 성공 처리
+        // 세션 관리자를 통해 세션을 생성하고, 회원 데이터 보관
+        sessionManager.createSession(loginMember, response);
+
+        return "redirect:/"; // 로그인이 되면 홈으로 보내기
+    }
 
     // 로그아웃
-    @PostMapping("/logout")
+//    @PostMapping("/logout")
     public String logout(HttpServletResponse response) {
         // 쿠키 지우기
         expireCookie(response, "memberId");
+        return "redirect:/"; // home으로 이동
+    }
+    @PostMapping("/logout")
+    public String logoutV2(HttpServletRequest request) {
+        sessionManager.expire(request);
         return "redirect:/"; // home으로 이동
     }
 
