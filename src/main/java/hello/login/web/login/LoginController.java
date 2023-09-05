@@ -11,6 +11,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -83,7 +84,7 @@ public class LoginController {
         return "redirect:/"; // 로그인이 되면 홈으로 보내기
     }
     // 서블릿 HTTP 세션1
-    @PostMapping("/login")
+//    @PostMapping("/login")
     public String loginV3(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult,
                           HttpServletRequest request) {
         if (bindingResult.hasErrors()) { // 에러가 있다면
@@ -107,6 +108,33 @@ public class LoginController {
         session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);// 세션에 보관하고 싶은 객체 담아둘 수 있다.
 
         return "redirect:/"; // 로그인이 되면 홈으로 보내기
+    }
+    // 서블릿 필터 - 인증 체크
+    @PostMapping("/login")
+    public String loginV4(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult,
+                          @RequestParam(defaultValue = "/") String redirectURL,
+                          HttpServletRequest request) {
+        if (bindingResult.hasErrors()) { // 에러가 있다면
+            return "login/loginForm";
+        }
+
+        // 성공 로직
+        Member loginMember = loginService.login(form.getLoginId(), form.getPassword());
+
+        // 회원을 못 찾거나 id, password가 맞지 않을 때
+        if (loginMember == null) {
+            // reject()는 글로벌 오류이다. 필드 오류 아님
+            bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
+            return "login/loginForm";
+        }
+
+        // 로그인 성공 처리
+        // 세션이 있으면 있는 세션 반환, 없으면 신규 세션을 생성
+        HttpSession session = request.getSession(); // http 세션
+        // 세션에 로그인 회원 정보 보관
+        session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);// 세션에 보관하고 싶은 객체 담아둘 수 있다.
+
+        return "redirect:" + redirectURL; // 로그인이 되면 홈으로 보내기
     }
 
     // 로그아웃
