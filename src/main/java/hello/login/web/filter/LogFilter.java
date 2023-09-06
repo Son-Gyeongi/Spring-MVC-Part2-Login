@@ -24,7 +24,7 @@ public class LogFilter implements Filter {
         // 모든 사용자의 요청 URI를 남겨보자
         String requestURI = httpRequest.getRequestURI();
 
-        // 요청온 거 구분하기 위해서 UUDI 사용
+        // 요청온 거 구분하기 위해서 UUID 사용
         String uuid = UUID.randomUUID().toString();
 
         try {
