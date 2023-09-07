@@ -3,6 +3,7 @@ package hello.login;
 import hello.login.web.filter.LogFilter;
 import hello.login.web.filter.LoginCheckFilter;
 import hello.login.web.interceptor.LogInterceptor;
+import hello.login.web.interceptor.LoginCheckInterceptor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,7 +30,7 @@ public class WenConfig implements WebMvcConfigurer {
     }
 
     // 서블릿 필터 - 인증 체크
-    @Bean
+//    @Bean
     public FilterRegistrationBean loginCheckFilter() {
         FilterRegistrationBean<Filter> filterRegistrationBean = new FilterRegistrationBean<>();
         filterRegistrationBean.setFilter(new LoginCheckFilter());
@@ -50,5 +51,13 @@ public class WenConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/css/**", "/*.ico", "/error"); // 해당 경로 인터셉터 하지마
         // "/**" 모든 걸 허용하지만 "/css/**", "/*.ico", "/error" 들은 뺼거다. LogInterceptor호출이 안된다.
         // 필터와 비교해보면 인터셉터는 addPathPatterns , excludePathPatterns 로 매우 정밀하게 URL 패턴을 지정할 수 있다.
+
+        // 스프링 인터셉터 - 인증 체크
+        // LoginCheckInterceptor 등록
+        registry.addInterceptor(new LoginCheckInterceptor())
+                .order(2)
+                .addPathPatterns("/**") // 모든 경로에 대해서 다 로그체크
+                .excludePathPatterns("/", "/members/add", "/login", "/logout",
+                        "/css/*", "/*.ico", "/error");
     }
 }
