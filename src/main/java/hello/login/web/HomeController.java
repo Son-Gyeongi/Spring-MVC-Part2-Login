@@ -1,5 +1,6 @@
 package hello.login.web;
 
+import hello.login.web.argumentresolver.Login;
 import hello.login.web.member.Member;
 import hello.login.web.member.MemberRepository;
 import hello.login.web.session.SessionManager;
@@ -90,11 +91,25 @@ public class HomeController {
         return "loginHome";
     }
     // 서블릿 HTTP 세션2
-    @GetMapping("/")
+//    @GetMapping("/")
     public String homeLoginV3Spring(
             @SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false) Member loginMember,
             Model model) {
         // @SessionAttribute - 세션에서 Attribute 한번에 꺼낸다.
+
+        // 세션에 회원 데이터가 없으면 home으로 이동
+        if (loginMember == null) { // DB에 없을 경우
+            return "home";
+        }
+
+        // 세션이 유지되면(세션이 유지되고 loginMember데이터가 있는 걸 확인이 되면) 로그인으로 이동
+        model.addAttribute("member", loginMember);
+        return "loginHome";
+    }
+    // ArgumentResolver 활용
+    @GetMapping("/")
+    public String homeLoginV3ArgumentResolver(@Login Member loginMember, Model model) {
+        // @Login - 자동으로 로그인된 사용자라고 인식한다. 세션에서 찾아서 넣어주는 과정을 편리하게 해준다.
 
         // 세션에 회원 데이터가 없으면 home으로 이동
         if (loginMember == null) { // DB에 없을 경우

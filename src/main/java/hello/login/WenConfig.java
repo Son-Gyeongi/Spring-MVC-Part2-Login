@@ -1,5 +1,6 @@
 package hello.login;
 
+import hello.login.web.argumentresolver.LoginMemberArgumentResolver;
 import hello.login.web.filter.LogFilter;
 import hello.login.web.filter.LoginCheckFilter;
 import hello.login.web.interceptor.LogInterceptor;
@@ -7,10 +8,12 @@ import hello.login.web.interceptor.LoginCheckInterceptor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.servlet.Filter;
+import java.util.List;
 
 // logFilter() 호출 -> loginCheckFilter() 호출 -> addInterceptors() 호출된다.
 @Configuration
@@ -59,5 +62,11 @@ public class WenConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**") // 모든 경로에 대해서 다 로그체크
                 .excludePathPatterns("/", "/members/add", "/login", "/logout",
                         "/css/*", "/*.ico", "/error");
+    }
+
+    // ArgumentResolver 활용 - LoginMemberArgumentResolver 등록
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(new LoginMemberArgumentResolver());
     }
 }
